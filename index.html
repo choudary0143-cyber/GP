@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Status Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        /* (CSS styles for the HTML dashboard remain here - Omitted for brevity in the answer) */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #2c3e50;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .logo {
+            margin-bottom: 20px;
+        }
+
+        .logo h1 {
+            font-size: 2em;
+            color: #3498db;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="month"],
+        input[type="password"],
+        input[type="email"],
+        select {
+            padding: 12px;
+            border: 1px solid #ecf0f1;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="month"]:focus,
+        input[type="password"]:focus,
+        input[type="email"]:focus,
+        select:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: #7f8c8d;
+        }
+
+        button {
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(90deg, #2980b9, #3498db);
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Dashboard Specific Styling */
+        #dashboard-section h1 {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        #dashboard-section p {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #ecf0f1;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: #ffffff;
+        }
+
+        th, td {
+            border: 1px solid #ecf0f1;
+            padding: 12px;
+            text-align: left;
+            font-size: 0.95em;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: 500;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9fbfd;
+        }
+
+        tr:hover {
+            background-color: #ecf0f1;
+            transition: background-color 0.2s;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        #total {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-top: 15px;
+            text-align: right;
+            font-size: 1.1em;
+        }
+
+        .filter-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .download-section {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .download-section button {
+            background-color: #008CBA;
+            padding: 10px 20px;
+            flex: 1;
+            min-width: 140px;
+            font-weight: 500;
+        }
+
+        .download-section button:hover {
+            background-color: #006d93;
+        }
+
+        .pdf-btn {
+            background-color: #ff6b35 !important;
+        }
+
+        .pdf-btn:hover {
+            background-color: #e55a2b !important;
+        }
+
+        .csv-btn {
+            background-color: #28a745 !important;
+        }
+
+        .csv-btn:hover {
+            background-color: #218838 !important;
+        }
+
+        #logout {
+            background-color: #7f8c8d;
+            margin-top: 20px;
+        }
+
+        #logout:hover {
+            background-color: #6c757d;
+        }
+
+        .flex-container {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+        .flex-container input, .flex-container button, .flex-container select {
+            flex-grow: 1;
+        }
+        .flex-container input[type="text"] {
+            flex-grow: 3;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+                padding: 20px;
+            }
+            .flex-container {
+                flex-direction: column;
+            }
+            .card {
+                padding: 15px;
+            }
+
+            input, button, select, .link-section a {
+                font-size: 0.9em;
+            }
+
+            .filter-section, .download-section {
+                flex-direction: column;
+            }
+
+            .download-section button {
+                min-width: auto;
+                width: 100%;
+            }
+
+            th, td {
+                padding: 8px;
+                font-size: 0.85em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="login-section">
+            <div class="logo"><h1>FinancePro</h1></div>
+            <h2>Sign In (Step 1 of 2)</h2>
+            <form id="email-form">
+                <input type="email" id="login-email" placeholder="Enter Email" required>
+                <button type="submit" id="send-otp-btn">Send OTP</button>
+            </form>
+            <p style="color: #7f8c8d; font-size: 0.9em; margin-top: 10px;">
+                Please contact your administrator for login credentials.
+            </p>
+        </div>
+
+        <div id="otp-section" class="hidden">
+            <div class="logo"><h1>FinancePro</h1></div>
+            <h2>Verify OTP (Step 2 of 2)</h2>
+            <p style="color: #2980b9; font-weight: 500; margin-bottom: 15px;">
+                A 4-digit OTP has been 'sent' to your email.
+            </p>
+            <form id="otp-form">
+                <input type="number" id="otp-input" placeholder="Enter 4-digit OTP" required maxlength="4">
+                <button type="submit">Verify</button>
+            </form>
+        </div>
+
+        <div id="dashboard-section" class="hidden">
+            <h1>Finance Status Dashboard</h1>
+            <p>Track client payments and log daily amounts.</p>
+            
+            <div class="card">
+                <h2>1. Register New Client (Name is fixed)</h2>
+                <form id="add-client-form">
+                    <input type="text" id="new-client-name" placeholder="Client Name (e.g., Manikanta)" required>
+                    <button type="submit">Register Client</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>2. Add Daily Payment Entry</h2>
+                <form id="entry-form">
+                    <select id="client-select" required>
+                        <option value="">-- Select Client --</option>
+                        </select>
+                    <div class="flex-container">
+                        <input type="number" id="daily-payment-input" placeholder="Daily Payment Amount (e.g., 500)" required>
+                        <input type="date" id="entry-date" required>
+                    </div>
+                    <button type="submit">Log Payment</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>3. Entries Log</h2>
+                <div class="filter-section">
+                    <select id="filter-type">
+                        <option value="all">All Entries</option>
+                        <option value="daily">Daily</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="client">By Client</option>
+                    </select>
+                    <input type="date" id="filter-date" class="hidden">
+                    <input type="month" id="filter-month" class="hidden">
+                    <input type="text" id="filter-client" placeholder="Enter Client Name" class="hidden">
+                </div>
+                <table id="entries-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Daily Payment</th>
+                            <th>Date Logged</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div id="total"></div>
+            </div>
+
+            <div class="card download-section">
+                <button id="download-pdf" class="pdf-btn">Download PDF</button>
+                <button id="download-csv" class="csv-btn">Download CSV</button>
+            </div>
+
+            <button id="logout">Logout</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Element Declarations ---
+            const emailForm = document.getElementById('email-form');
+            const otpForm = document.getElementById('otp-form');
+            const loginSection = document.getElementById('login-section');
+            const otpSection = document.getElementById('otp-section');
+            const dashboardSection = document.getElementById('dashboard-section');
+            const loginEmailInput = document.getElementById('login-email');
+            const otpInput = document.getElementById('otp-input');
+            
+            // New Elements for Client Management
+            const addClientForm = document.getElementById('add-client-form');
+            const newClientNameInput = document.getElementById('new-client-name');
+            const clientSelect = document.getElementById('client-select');
+            const dailyPaymentInput = document.getElementById('daily-payment-input'); // New input
+            const entryDateInput = document.getElementById('entry-date');
+
+            const entryForm = document.getElementById('entry-form');
+            const entriesTableBody = document.querySelector('#entries-table tbody');
+            const totalElement = document.getElementById('total');
+            const logoutButton = document.getElementById('logout');
+            const filterType = document.getElementById('filter-type');
+            const filterDate = document.getElementById('filter-date');
+            const filterMonth = document.getElementById('filter-month');
+            const filterClient = document.getElementById('filter-client');
+            const downloadPdfButton = document.getElementById('download-pdf');
+            const downloadCsvButton = document.getElementById('download-csv');
+
+            let currentMockOTP = ''; 
+            // MODIFIED: entries now stores all three values (name, date, amount)
+            let entries = JSON.parse(localStorage.getItem('financeEntries') || '[]'); // Daily log
+            // MODIFIED: clientList now only stores names (strings)
+            let clientList = JSON.parse(localStorage.getItem('clientList') || '[]'); // Master list of clients
+
+            // --- Storage & Data Management ---
+
+            function generateRandomOTP() {
+                return Math.floor(1000 + Math.random() * 9000).toString();
+            }
+
+            function saveEntries() {
+                localStorage.setItem('financeEntries', JSON.stringify(entries));
+            }
+            
+            function saveClientList() {
+                localStorage.setItem('clientList', JSON.stringify(clientList));
+            }
+
+            function loadData() {
+                entries = JSON.parse(localStorage.getItem('financeEntries') || '[]');
+                clientList = JSON.parse(localStorage.getItem('clientList') || '[]');
+                populateClientSelect();
+                renderEntries(entries);
+            }
+            
+            function populateClientSelect() {
+                clientSelect.innerHTML = '<option value="">-- Select Client --</option>';
+                clientList.sort((a, b) => a.localeCompare(b)).forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    clientSelect.appendChild(option);
+                });
+            }
+
+            function renderEntries(entriesToRender) {
+                const filter = filterType.value;
+                let filteredEntries = entriesToRender;
+
+                if (filter === 'daily' && filterDate.value) {
+                    filteredEntries = entries.filter(entry => entry.dateLogged === filterDate.value);
+                } else if (filter === 'monthly' && filterMonth.value) {
+                    const [year, month] = filterMonth.value.split('-');
+                    filteredEntries = entries.filter(entry => {
+                        const entryDate = new Date(entry.dateLogged);
+                        return entryDate.getFullYear() === parseInt(year) && 
+                               entryDate.getMonth() === parseInt(month) - 1;
+                    });
+                } else if (filter === 'client' && filterClient.value) {
+                    filteredEntries = entries.filter(entry => entry.name.toLowerCase().includes(filterClient.value.toLowerCase()));
+                } 
+
+                entriesTableBody.innerHTML = '';
+                filteredEntries.forEach((entry) => {
+                    // Find the ORIGINAL index in the main entries array (since filtering changes index)
+                    // We need to match on all three fields now: name, date, and payment amount
+                    const originalIndex = entries.findIndex(e => 
+                        e.name === entry.name && 
+                        e.dateLogged === entry.dateLogged && 
+                        e.dailyPayment === entry.dailyPayment
+                    );
+                    
+                    const row = document.createElement('tr');
+                    // Display all three values from the entry object
+                    row.innerHTML = `<td>${entry.name}</td><td>${Number(entry.dailyPayment).toFixed(2)}</td><td>${entry.dateLogged}</td><td><button class="delete-btn" data-index="${originalIndex}">Delete</button></td>`;
+                    entriesTableBody.appendChild(row);
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const originalIndex = parseInt(e.target.getAttribute('data-index'));
+                        if(originalIndex !== -1) {
+                            entries.splice(originalIndex, 1);
+                            saveEntries();
+                            renderEntries(entries); 
+                            alert('Entry deleted successfully!');
+                        }
+                    });
+                });
+
+                // Calculate Total for filtered list
+                const totalPayment = filteredEntries.reduce((sum, entry) => sum + (Number(entry.dailyPayment) || 0), 0);
+                totalElement.textContent = `Total Payment in View: ₹${totalPayment.toFixed(2)}`;
+            }
+
+            function validateEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+
+            // --- Event Listeners ---
+            
+            // Login/OTP Logic
+            emailForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = loginEmailInput.value;
+                if (email && validateEmail(email)) {
+                    currentMockOTP = generateRandomOTP();
+                    loginSection.classList.add('hidden');
+                    otpSection.classList.remove('hidden');
+                    otpInput.value = ''; 
+                    otpInput.focus();
+                    alert(`A 4-digit mock OTP (${currentMockOTP}) has been 'sent' to ${email}. This code will change on the next login attempt.`);
+                } else {
+                    alert('Please enter a valid email address.');
+                }
+            });
+
+            otpForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const otp = otpInput.value;
+                if (otp.length !== 4) {
+                    alert('Please enter exactly 4 digits for the OTP.');
+                    return;
+                }
+                if (otp === currentMockOTP) {
+                    otpSection.classList.add('hidden');
+                    dashboardSection.classList.remove('hidden');
+                    loadData(); // Load both entries and client list
+                    loginEmailInput.value = '';
+                    otpInput.value = '';
+                    currentMockOTP = ''; 
+                } else {
+                    alert('Invalid OTP. Please try again.');
+                }
+            });
+
+            // MODIFIED: Add Client Form (Name only)
+            addClientForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = newClientNameInput.value.trim();
+
+                if (!name) {
+                    alert('Please enter a valid Client Name.');
+                    return;
+                }
+                
+                // Check for duplicates
+                if (clientList.some(clientName => clientName.toLowerCase() === name.toLowerCase())) {
+                    alert(`Client "${name}" already exists!`);
+                    return;
+                }
+
+                clientList.push(name);
+                saveClientList();
+                populateClientSelect();
+                
+                newClientNameInput.value = '';
+                alert(`Client "${name}" registered successfully!`);
+            });
+
+            // MODIFIED: Add Daily Entry Form (Requires amount daily)
+            entryForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = clientSelect.value;
+                const dailyPayment = parseFloat(dailyPaymentInput.value);
+                const dateLogged = entryDateInput.value;
+
+                if (!name || !dateLogged || isNaN(dailyPayment) || dailyPayment <= 0) {
+                    alert('Please select a client, enter a valid date, and a positive payment amount.');
+                    return;
+                }
+                
+                // Check for duplicate date log for this client
+                if (entries.some(entry => entry.name === name && entry.dateLogged === dateLogged)) {
+                    alert(`An entry for ${name} on ${dateLogged} already exists! Delete the previous entry to log a new amount for this date.`);
+                    return;
+                }
+
+                // Push all three key pieces of info
+                entries.push({ name, dailyPayment, dateLogged });
+                saveEntries();
+                renderEntries(entries);
+                
+                clientSelect.value = '';
+                dailyPaymentInput.value = '';
+                entryDateInput.value = '';
+                alert(`Payment of ₹${dailyPayment.toFixed(2)} logged for ${name} on ${dateLogged}!`);
+            });
+
+
+            // Filter Logic
+            filterType.addEventListener('change', (e) => {
+                filterDate.classList.add('hidden');
+                filterMonth.classList.add('hidden');
+                filterClient.classList.add('hidden');
+                
+                if (e.target.value === 'daily') filterDate.classList.remove('hidden');
+                else if (e.target.value === 'monthly') filterMonth.classList.remove('hidden');
+                else if (e.target.value === 'client') filterClient.classList.remove('hidden');
+                
+                renderEntries(entries);
+            });
+
+            filterDate.addEventListener('change', () => renderEntries(entries));
+            filterMonth.addEventListener('change', () => renderEntries(entries));
+            filterClient.addEventListener('input', () => renderEntries(entries));
+
+            // CSV Download (Uses data from the current rendered table)
+            downloadCsvButton.addEventListener('click', () => {
+                const headRow = Array.from(document.querySelectorAll('#entries-table thead th')).map(th => th.textContent);
+                const headers = headRow.slice(0, -1); 
+                
+                const tableRows = Array.from(document.querySelectorAll('#entries-table tbody tr'));
+                const csvRows = [headers.join(',')];
+                
+                tableRows.forEach(row => {
+                    const cells = Array.from(row.querySelectorAll('td'));
+                    const rowData = [
+                        `"${cells[0].textContent.replace(/"/g, '""')}"`,
+                        cells[1].textContent.replace('₹', ''), 
+                        cells[2].textContent
+                    ];
+                    csvRows.push(rowData.join(','));
+                });
+
+                let filename = 'finance_entries_filtered.csv';
+                const csvContent = csvRows.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+                URL.revokeObjectURL(link.href);
+                alert(`CSV Report downloaded successfully!`);
+            });
+
+            // PDF Download (Uses data from the current rendered table, centered total)
+            downloadPdfButton.addEventListener('click', () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                const filter = filterType.value;
+                let reportTitle = 'Finance Report - All Entries';
+                let filename = 'finance_report_all.pdf';
+
+                if (filter === 'daily' && filterDate.value) {
+                    reportTitle = `Finance Report - Daily (${filterDate.value})`;
+                    filename = `finance_report_daily_${filterDate.value}.pdf`;
+                } else if (filter === 'monthly' && filterMonth.value) {
+                    reportTitle = `Finance Report - Monthly (${new Date(filterMonth.value).toLocaleString('en-us', { month: 'long', year: 'numeric' })})`;
+                    filename = `finance_report_monthly_${filterMonth.value}.pdf`;
+                } else if (filter === 'client' && filterClient.value) {
+                    reportTitle = `Finance Report - Client: ${filterClient.value}`;
+                    filename = `finance_report_client_${filterClient.value}.pdf`;
+                }
+                
+                const head = [['Client Name', 'Daily Payment (₹)', 'Date Logged']];
+                const tableRows = Array.from(document.querySelectorAll('#entries-table tbody tr'));
+                const body = tableRows.map(row => {
+                    const cells = Array.from(row.querySelectorAll('td'));
+                    return [
+                        cells[0].textContent,
+                        cells[1].textContent, 
+                        cells[2].textContent
+                    ];
+                });
+                
+                const totalText = totalElement.textContent.replace('Total Payment in View: ', '');
+                
+                let finalY = 0; 
+                const margin = 20;
+                finalY = 20;
+
+                // --- Header Section ---
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(24);
+                doc.setTextColor('#3498db');
+                doc.text('FinancePro Dashboard Report', margin, finalY);
+                finalY += 15;
+
+                doc.setFontSize(16);
+                doc.setTextColor('#2c3e50');
+                doc.text(reportTitle, margin, finalY);
+                finalY += 10;
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+                doc.setTextColor('#7f8c8d');
+                doc.text(`Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, margin, finalY);
+                finalY += 15;
+
+                // --- AutoTable Generation ---
+                doc.autoTable({
+                    startY: finalY,
+                    head: head,
+                    body: body,
+                    theme: 'striped',
+                    styles: {
+                        font: 'helvetica',
+                        fontSize: 10,
+                        cellPadding: 3,
+                    },
+                    headStyles: {
+                        fillColor: '#3498db',
+                        textColor: '#ffffff',
+                        fontStyle: 'bold',
+                        fontSize: 11,
+                        valign: 'middle',
+                        halign: 'center',
+                        cellPadding: 4, 
+                    },
+                    bodyStyles: {
+                        minCellHeight: 8 
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 85 }, 
+                        1: { halign: 'center', cellWidth: 35 },
+                        2: { halign: 'center', cellWidth: 35 }
+                    },
+                    margin: { left: margin, right: margin },
+                    didDrawPage: (data) => {
+                        const pageCount = doc.internal.getNumberOfPages();
+                        doc.setFontSize(8);
+                        doc.setFont('helvetica', 'italic');
+                        doc.setTextColor('#7f8c8d');
+                        const pageSize = doc.internal.pageSize;
+                        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+                        
+                        doc.text('Generated by FinancePro Dashboard', margin, pageHeight - 10);
+                        doc.text(`Page ${data.pageNumber} of ${pageCount}`, pageSize.width - margin, pageHeight - 10, { align: 'right' });
+                    },
+                    didDrawCell: (data) => {
+                        if (data.section === 'tableBody') {
+                            finalY = data.cell.y + data.cell.height;
+                        }
+                    }
+                });
+                
+                if (doc.autoTable.previous.finalY) {
+                    finalY = doc.autoTable.previous.finalY;
+                }
+                
+                finalY += 5;
+
+                // --- Total Summary (Center Aligned) ---
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(12);
+                doc.setTextColor('#2c3e50');
+                
+                const centerX = doc.internal.pageSize.width / 2;
+                
+                doc.text(totalText, centerX, finalY + 5, { align: 'center' });
+
+                doc.save(filename);
+                alert(`PDF Report "${reportTitle}" downloaded successfully!`);
+            });
+
+            logoutButton.addEventListener('click', () => {
+                dashboardSection.classList.add('hidden');
+                loginSection.classList.remove('hidden');
+                currentMockOTP = ''; 
+                filterType.value = 'all';
+                filterDate.classList.add('hidden');
+                filterMonth.classList.add('hidden');
+                filterClient.classList.add('hidden');
+                totalElement.textContent = '';
+            });
+        });
+    </script>
+</body>
+</html>
